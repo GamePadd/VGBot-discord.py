@@ -19,22 +19,28 @@ def GetServerInfo(ADDRESS):
     print(a2s.info(ADDRESS))
     print(a2s.players(ADDRESS))
 
-    CLR = discord.Color.green()
+    CLR = discord.Color.purple()
 
     emb = discord.Embed(title = a2s.info(ADDRESS).server_name, colour = CLR)
+
+    if a2s.info(ADDRESS).game == "Sven Co-op 5.25":
+        GameUrl = "https://steamuserimages-a.akamaihd.net/ugc/1809893225284845336/2C844533D5DE76F2B0C8442AB6F84E9A6D660A87/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false"
+    else:
+        GameUrl = ""
+    
     emb.add_field(name = "=======================================", value="", inline=False)
 
     COUNTER = 0
 
     for I in a2s.players(ADDRESS):
         emb.add_field(name = "Игрок: " + I.name + " | Счет: " + str(I.score) + " | Время игры: " + str(datetime.timedelta(seconds = math.ceil(I.duration))), value = "",  inline=False)
-        emb.set_footer(text = a2s.info(ADDRESS).game)
+        emb.set_footer(text = a2s.info(ADDRESS).game,icon_url=GameUrl)
 
         COUNTER += 1
 
     if COUNTER == 0:
         emb.add_field(name = "Сервер пуст",value="",inline=False)
-        emb.set_footer(text = a2s.info(ADDRESS).game)
+        emb.set_footer(text = a2s.info(ADDRESS).game,icon_url=GameUrl)
     
     emb.add_field(name = "=======================================", value="", inline=False)
 
