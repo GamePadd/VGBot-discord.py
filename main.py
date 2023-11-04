@@ -2,6 +2,7 @@ import discord
 import a2s
 import datetime
 import random
+import sqlite3
 import math
 from discord.ext import commands
 
@@ -12,6 +13,7 @@ PREFIX = "!"
 SERVER_ADDRESS_PVE = "212.12.17.122",28015
 SERVER_ADDRESS_RUST = "212.12.17.122",30015
 SERVER_ADDRESS_ZN = "212.12.17.122",31015
+SERVER_ADDRESS_BULBA = "",2
 
 client = commands.Bot(command_prefix=PREFIX, intents=intents)
 
@@ -28,7 +30,7 @@ def GetServerInfo(ADDRESS):
     else:
         GameUrl = ""
     
-    emb.add_field(name = "=======================================", value="", inline=False)
+    emb.add_field(name = "==================================", value="", inline=False)
 
     COUNTER = 0
 
@@ -42,14 +44,14 @@ def GetServerInfo(ADDRESS):
         emb.add_field(name = "Сервер пуст",value="",inline=False)
         emb.set_footer(text = a2s.info(ADDRESS).game,icon_url=GameUrl)
     
-    emb.add_field(name = "=======================================", value="", inline=False)
+    emb.add_field(name = "==================================", value="", inline=False)
 
     return emb
 
 @client.event
 
 async def on_ready():
-    print("Connected!")
+    print("Бот запущен!")
     await client.change_presence(activity=discord.Game('!зн, !пве, !раст'))
 
 @client.command()
@@ -69,9 +71,7 @@ async def зрада(ctx):
     emb = discord.Embed(title = 'Текущая Зрада', colour = CLR)
 
     emb.set_footer(text = "Зрадометр 1.0")
-    emb.add_field(name = "--------------", value = "", inline=False)
     emb.add_field(name = str(CNT) + "%", value = "", inline=False)
-    emb.add_field(name = "--------------", value = "", inline=False)
 
     await ctx.reply(embed = emb)
 
@@ -92,26 +92,89 @@ async def перемога(ctx):
     emb = discord.Embed(title = 'Текущая Перемога', colour = CLR)
 
     emb.set_footer(text = "Перемометр 1.0")
-    emb.add_field(name = "--------------", value = "", inline=False)
     emb.add_field(name = str(-CNT) + "%", value = "", inline=False)
-    emb.add_field(name = "--------------", value = "", inline=False)
 
     await ctx.reply(embed = emb)
 
 @client.command()
 
 async def пве(ctx):
-    await ctx.reply(embed = GetServerInfo(SERVER_ADDRESS_PVE))
+    dokl = client.get_channel(1170339560111214683)
+    await dokl.send(str(ctx.message.author.mention))
+    await dokl.send(embed = GetServerInfo(SERVER_ADDRESS_PVE))
 
 @client.command()
 
 async def зн(ctx):
-    await ctx.reply(embed = GetServerInfo(SERVER_ADDRESS_ZN))
+    dokl = client.get_channel(1170339560111214683)
+    await dokl.send(str(ctx.message.author.mention))
+    await dokl.send(embed = GetServerInfo(SERVER_ADDRESS_ZN))
 
 @client.command()
 
 async def раст(ctx):
-    await ctx.reply(embed = GetServerInfo(SERVER_ADDRESS_RUST))
+    dokl = client.get_channel(1170339560111214683)
+    await dokl.send(str(ctx.message.author.mention))
+    await dokl.send(embed = GetServerInfo(SERVER_ADDRESS_RUST))
+
+@client.command()
+
+async def обновить(ctx):
+    file = open("update.txt", "r")
+    num = int(file.readline())+1
+    file.close()
+
+    file = open("update.txt", "w")
+    file.write(str(num))
+    file.close()
+
+    upd = client.get_channel(1052635054418972773)
+
+    await ctx.send("Обновлено!")
+
+@client.command()
+@commands.has_permissions(administrator = True)
+
+async def обновитьБД(ctx):
+    con = sqlite3.connect("users.db")
+    cursor = con.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS Участник(
+    Ник TEXT,
+    Деньги INTEGER               
+    )               
+    """)
+
+    con.commit()
+    con.close()
+
+    print("БД Обновлена")
+
+@client.command()
+    
+async def рег(ctx):
+    con = sqlite3.connect("users.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT Ник FROM Участник")
+    Already = False
+
+    Nick = cursor.fetchall()
+    for title in Nick:
+        if title[0] == str(ctx.message.author):
+            await ctx.reply("Ошибка, вы уже есть в Базе Данных сервера")
+            Already=True
+
+    if Already == False:
+        cursor.execute("""
+        INSERT INTO Участник               
+        (Ник, Деньги)               
+        VALUES               
+        (?,?)               
+        """, (str(ctx.message.author), 10))
+        await ctx.reply("Вы были успешно добавлены в базу данных!")
+    con.commit()
+    con.close()
 
 token = open("token.txt", "r").readline()
 client.run(token)
