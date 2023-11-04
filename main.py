@@ -120,6 +120,8 @@ async def раст(ctx):
 @client.command()
 
 async def обновить(ctx):
+    CLR = discord.Color.green()
+
     file = open("update.txt", "r")
     num = int(file.readline())+1
     file.close()
@@ -128,9 +130,16 @@ async def обновить(ctx):
     file.write(str(num))
     file.close()
 
+    file = open("update.txt", "r")
+    num = int(file.readline())
+    emb = discord.Embed(title = 'Бот обновлен до версии ' + str(num), colour = CLR)
+    file.close()
+
+    emb.set_footer(text = datetime.datetime.now())
+
     upd = client.get_channel(1052635054418972773)
 
-    await ctx.send("Обновлено!")
+    await upd.send(embed = emb)
 
 @client.command()
 @commands.has_permissions(administrator = True)
