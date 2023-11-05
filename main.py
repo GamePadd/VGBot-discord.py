@@ -5,6 +5,9 @@ import random
 import sqlite3
 import math
 from discord.ext import commands
+import requests
+from PIL import Image, ImageFont, ImageDraw
+import io
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -99,23 +102,17 @@ async def перемога(ctx):
 @client.command()
 
 async def пве(ctx):
-    dokl = client.get_channel(1170339560111214683)
-    await dokl.send(str(ctx.message.author.mention))
-    await dokl.send(embed = GetServerInfo(SERVER_ADDRESS_PVE))
+    await ctx.reply(embed = GetServerInfo(SERVER_ADDRESS_PVE))
 
 @client.command()
 
 async def зн(ctx):
-    dokl = client.get_channel(1170339560111214683)
-    await dokl.send(str(ctx.message.author.mention))
-    await dokl.send(embed = GetServerInfo(SERVER_ADDRESS_ZN))
+    await ctx.reply(embed = GetServerInfo(SERVER_ADDRESS_ZN))
 
 @client.command()
 
 async def раст(ctx):
-    dokl = client.get_channel(1170339560111214683)
-    await dokl.send(str(ctx.message.author.mention))
-    await dokl.send(embed = GetServerInfo(SERVER_ADDRESS_RUST))
+    await ctx.reply(embed = GetServerInfo(SERVER_ADDRESS_RUST))
 
 @client.command()
 
@@ -161,7 +158,7 @@ async def обновитьБД(ctx):
     print("БД Обновлена")
 
 @client.command()
-    
+
 async def рег(ctx):
     con = sqlite3.connect("users.db")
     cursor = con.cursor()
@@ -182,6 +179,49 @@ async def рег(ctx):
         (?,?)               
         """, (str(ctx.message.author), 10))
         await ctx.reply("Вы были успешно добавлены в базу данных!")
+    con.commit()
+    con.close()
+
+@client.command()
+
+async def баланс(ctx):
+    con = sqlite3.connect("users.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT Ник FROM Участник")
+    Already = False
+
+    Nick = cursor.fetchall()
+    for title in Nick:
+        if title[0] == str(ctx.message.author):
+
+            cursor.execute("SELECT Деньги FROM Участник WHERE Ник=?",(title[0], ))
+            balance = cursor.fetchone()
+
+            img = Image.new('RGBA',(400,200), '#212121')
+            imgAva = str(ctx.message.author.avatar)
+
+            r = requests.get(imgAva, stream=True)
+            r = Image.open(io.BytesIO(r.content))
+            r = r.convert('RGBA')
+            r = r.resize((100,100))
+
+            img.paste(r,(15,50,115,150))
+            idraw = ImageDraw.Draw(img)
+            name = ctx.author.name
+
+            head = ImageFont.truetype('impact.ttf',size=40)
+            money = ImageFont.truetype('impact.ttf',size=30)
+
+            idraw.text((135,50), f'{name.upper()}', font=head)
+            idraw.text((135,100), f'{str(balance[0]) + "$"}', font=head)
+
+            img.save('bcard.png')
+
+            await ctx.reply(file=discord.File(fp= 'bcard.png'))
+
+            Already=True
+    if Already == False:
+        await ctx.reply("Ошибка, вас нет в базе данных сервера, напишите !рег для создания счета")
     con.commit()
     con.close()
 
