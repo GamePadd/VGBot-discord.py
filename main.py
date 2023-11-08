@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import discord
 import a2s
 import datetime
@@ -213,7 +214,7 @@ async def баланс(ctx):
             money = ImageFont.truetype('impact.ttf',size=30)
 
             idraw.text((135,50), f'{name.upper()}', font=head)
-            idraw.text((135,100), f'{str(balance[0]) + "$"}', font=head)
+            idraw.text((135,100), f'{str(balance[0]) + "Р"}', font=head)
 
             img.save('bcard.png')
 
